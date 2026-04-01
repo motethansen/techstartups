@@ -1,0 +1,7 @@
+# Copy this file to .dev.vars for local development (git-ignored)
+# These variables are used by Cloudflare Pages Functions when running locally
+# with: npm run pages:dev
+
+ADMIN_USER=michaelhansen
+ADMIN_PASS=DetteErHemmeligt123
+SESSION_SECRET=any-long-random-string-for-local-dev-only

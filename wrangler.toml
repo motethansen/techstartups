@@ -1,0 +1,32 @@
+# Cloudflare Pages project configuration
+# Docs: https://developers.cloudflare.com/pages/functions/wrangler-configuration/
+
+name = "techstartups"
+compatibility_date = "2025-01-01"
+pages_build_output_dir = "dist"
+
+# -------------------------------------------------------
+# KV Namespace binding
+#   - Variable name must match what the Functions use: SURVEY_KV
+#   - Replace the id value with your real KV namespace ID from the Cloudflare dashboard
+#     Workers & Pages → KV → click your namespace → copy the ID shown at the top
+# -------------------------------------------------------
+[[kv_namespaces]]
+binding = "SURVEY_KV"
+id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+
+# -------------------------------------------------------
+# Environment variables used by Pages Functions (server-side only)
+# DO NOT put real secrets here — set these in the Cloudflare dashboard
+# under Pages → Settings → Environment variables (mark as Encrypted)
+#   ADMIN_USER     = your teacher username
+#   ADMIN_PASS     = your teacher password
+#   SESSION_SECRET = a long random string (run: openssl rand -hex 32)
+# -------------------------------------------------------
+
+# -------------------------------------------------------
+# Local development (optional)
+# Run: npm run pages:dev
+# This starts the Vite dev server + Pages Functions locally via wrangler
+# You can override env vars for local dev in a .dev.vars file (git-ignored)
+# -------------------------------------------------------
