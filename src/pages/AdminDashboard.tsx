@@ -1,5 +1,6 @@
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GROUPS, DIMENSIONS, getStoredSubmissions, type SurveySubmission } from "@/lib/survey-data";
@@ -38,14 +39,19 @@ function computeAverages(submissions: SurveySubmission[]) {
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    if (sessionStorage.getItem("admin-auth") !== "true") {
-      navigate("/admin/login");
-    }
-  }, [navigate]);
+  const { data: submissions = [], isLoading } = useQuery({
+    queryKey: ["submissions"],
+    queryFn: getStoredSubmissions,
+    enabled: sessionStorage.getItem("admin-auth") === "true",
+  });
 
-  const submissions = getStoredSubmissions();
+  if (sessionStorage.getItem("admin-auth") !== "true") {
+    navigate("/admin/login");
+    return null;
+  }
+
   const averages = useMemo(() => computeAverages(submissions), [submissions]);
 
   const barData = DIMENSIONS.map((d) => {
@@ -65,21 +71,29 @@ const AdminDashboard = () => {
     return { group: g, average: Math.round(avg * 100) / 100 };
   }).sort((a, b) => b.average - a.average);
 
-  const handleReset = () => {
-    if (window.confirm("Are you sure you want to delete ALL survey submissions? This cannot be undone.")) {
-      localStorage.removeItem("survey-submissions");
+  const handleReset = async () => {
+    if (!window.confirm("Are you sure you want to delete ALL survey submissions? This cannot be undone.")) return;
+    const token = sessionStorage.getItem("admin-token") ?? "";
+    const res = await fetch("/api/admin/reset", {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if ((await res.json() as { ok: boolean }).ok) {
       toast.success("All data has been reset.");
-      window.location.reload();
+      queryClient.invalidateQueries({ queryKey: ["submissions"] });
+    } else {
+      toast.error("Reset failed — please log in again.");
+      navigate("/admin/login");
     }
   };
 
   const handleLogout = () => {
     sessionStorage.removeItem("admin-auth");
+    sessionStorage.removeItem("admin-token");
     navigate("/admin/login");
   };
 
   const handleDownloadPDF = () => {
-    // Build a printable page and use browser print-to-PDF
     const printWindow = window.open("", "_blank");
     if (!printWindow) { toast.error("Please allow pop-ups to download PDF."); return; }
 
@@ -121,8 +135,10 @@ const AdminDashboard = () => {
       <div className="max-w-5xl mx-auto space-y-8">
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-4xl text-primary">Admin Dashboard</h1>
-            <p className="text-muted-foreground font-sans">{submissions.length} submission{submissions.length !== 1 ? "s" : ""} recorded</p>
+            <h1 className="text-4xl text-primary">Teacher Dashboard</h1>
+            <p className="text-muted-foreground font-sans">
+              {isLoading ? "Loading…" : `${submissions.length} submission${submissions.length !== 1 ? "s" : ""} recorded`}
+            </p>
           </div>
           <div className="flex gap-2 flex-wrap">
             <Button onClick={handleDownloadPDF} disabled={submissions.length === 0}>Download PDF</Button>
@@ -131,7 +147,9 @@ const AdminDashboard = () => {
           </div>
         </motion.div>
 
-        {submissions.length === 0 ? (
+        {isLoading ? (
+          <Card><CardContent className="py-16 text-center"><p className="text-muted-foreground font-sans text-lg">Loading submissions…</p></CardContent></Card>
+        ) : submissions.length === 0 ? (
           <Card><CardContent className="py-16 text-center"><p className="text-muted-foreground font-sans text-lg">No submissions yet.</p></CardContent></Card>
         ) : (
           <>
@@ -193,7 +211,6 @@ const AdminDashboard = () => {
               ))}
             </div>
 
-            {/* Submission log */}
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
               <Card>
                 <CardHeader><CardTitle>Submission Log</CardTitle></CardHeader>

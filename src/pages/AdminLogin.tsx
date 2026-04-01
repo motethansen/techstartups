@@ -6,22 +6,34 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
-const ADMIN_USER = "michaelhansen";
-const ADMIN_PASS = "DetteErHemmeligt123";
-
 const AdminLogin = () => {
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (username === ADMIN_USER && password === ADMIN_PASS) {
-      sessionStorage.setItem("admin-auth", "true");
-      toast.success("Logged in as admin");
-      navigate("/admin");
-    } else {
-      toast.error("Invalid credentials");
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await res.json() as { ok: boolean; token?: string };
+      if (data.ok && data.token) {
+        sessionStorage.setItem("admin-auth", "true");
+        sessionStorage.setItem("admin-token", data.token);
+        toast.success("Logged in");
+        navigate("/admin");
+      } else {
+        toast.error("Invalid credentials");
+      }
+    } catch {
+      toast.error("Login failed — please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -30,8 +42,8 @@ const AdminLogin = () => {
       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-sm">
         <Card className="border-2">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl text-primary">Admin Login</CardTitle>
-            <p className="text-sm text-muted-foreground font-sans">Demo access only</p>
+            <CardTitle className="text-2xl text-primary">Teacher Login</CardTitle>
+            <p className="text-sm text-muted-foreground font-sans">Admin access</p>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
@@ -54,7 +66,9 @@ const AdminLogin = () => {
                   autoComplete="current-password"
                 />
               </div>
-              <Button type="submit" className="w-full">Log In</Button>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Logging in…" : "Log In"}
+              </Button>
               <Button type="button" variant="outline" className="w-full" onClick={() => navigate("/")}>
                 Back to Survey
               </Button>

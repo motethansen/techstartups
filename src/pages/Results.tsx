@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GROUPS, DIMENSIONS, getStoredSubmissions } from "@/lib/survey-data";
@@ -10,7 +11,11 @@ const COLORS = ["hsl(220,60%,22%)", "hsl(38,80%,55%)", "hsl(160,50%,40%)", "hsl(
 
 const Results = () => {
   const navigate = useNavigate();
-  const submissions = getStoredSubmissions();
+
+  const { data: submissions = [], isLoading } = useQuery({
+    queryKey: ["submissions"],
+    queryFn: getStoredSubmissions,
+  });
 
   const averages = useMemo(() => {
     const acc: Record<string, Record<string, { total: number; count: number }>> = {};
@@ -64,12 +69,20 @@ const Results = () => {
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
           <div>
             <h1 className="text-4xl text-primary">Results</h1>
-            <p className="text-muted-foreground font-sans">{submissions.length} submission{submissions.length !== 1 ? "s" : ""} recorded</p>
+            <p className="text-muted-foreground font-sans">
+              {isLoading ? "Loading…" : `${submissions.length} submission${submissions.length !== 1 ? "s" : ""} recorded`}
+            </p>
           </div>
           <Button variant="outline" onClick={() => navigate("/")}>Back to Survey</Button>
         </motion.div>
 
-        {submissions.length === 0 ? (
+        {isLoading ? (
+          <Card>
+            <CardContent className="py-16 text-center">
+              <p className="text-muted-foreground font-sans text-lg">Loading results…</p>
+            </CardContent>
+          </Card>
+        ) : submissions.length === 0 ? (
           <Card>
             <CardContent className="py-16 text-center">
               <p className="text-muted-foreground font-sans text-lg">No submissions yet. Complete the survey to see results here.</p>
@@ -77,7 +90,6 @@ const Results = () => {
           </Card>
         ) : (
           <>
-            {/* Overall ranking */}
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
               <Card>
                 <CardHeader><CardTitle>Overall Ranking</CardTitle></CardHeader>
@@ -96,7 +108,6 @@ const Results = () => {
               </Card>
             </motion.div>
 
-            {/* Bar chart */}
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
               <Card>
                 <CardHeader><CardTitle>Scores by Dimension</CardTitle></CardHeader>
@@ -117,7 +128,6 @@ const Results = () => {
               </Card>
             </motion.div>
 
-            {/* Radar charts */}
             <div className="grid md:grid-cols-2 gap-6">
               {radarDataByGroup.map((item, idx) => (
                 <motion.div key={item.group} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 + idx * 0.1 }}>

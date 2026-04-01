@@ -17,17 +17,20 @@ export interface GroupRanking {
 
 export interface SurveySubmission {
   evaluatorGroup: GroupName;
-  ratings: Record<string, GroupRanking>; // targetGroup -> { dimensionKey: score }
+  ratings: Record<string, GroupRanking>;
   submittedAt: string;
 }
 
-export function getStoredSubmissions(): SurveySubmission[] {
-  const data = localStorage.getItem("survey-submissions");
-  return data ? JSON.parse(data) : [];
+export async function getStoredSubmissions(): Promise<SurveySubmission[]> {
+  const res = await fetch("/api/submissions");
+  if (!res.ok) return [];
+  return res.json();
 }
 
-export function saveSubmission(submission: SurveySubmission) {
-  const existing = getStoredSubmissions();
-  existing.push(submission);
-  localStorage.setItem("survey-submissions", JSON.stringify(existing));
+export async function saveSubmission(submission: SurveySubmission): Promise<void> {
+  await fetch("/api/submissions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(submission),
+  });
 }
