@@ -6,6 +6,7 @@ import GroupRatingCard from "@/components/GroupRatingCard";
 import { GROUPS, DIMENSIONS, type GroupName, type DimensionKey, type GroupRanking, saveSubmission } from "@/lib/survey-data";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import rocketLogo from "@/assets/rocket-logo.png";
 
 const SurveyForm = () => {
   const navigate = useNavigate();
@@ -44,12 +45,31 @@ const SurveyForm = () => {
   };
 
   return (
-    <div className="min-h-screen py-12 px-4">
+    <div className="min-h-screen">
+      {/* Hero Header */}
+      <div className="relative overflow-hidden" style={{ backgroundColor: '#1B2A4A' }}>
+        <div className="max-w-5xl mx-auto px-6 py-12 flex items-center justify-between">
+          <div className="space-y-3 z-10">
+            <p className="text-xs tracking-[0.3em] uppercase text-secondary font-sans">
+              Thammasat University · Guest Lecture Series
+            </p>
+            <h1 className="text-5xl md:text-6xl font-extrabold text-white leading-tight">
+              Tech Startups
+            </h1>
+            <p className="text-lg italic text-secondary/80 font-serif">
+              From Idea to Venture — Building the Future of Innovation
+            </p>
+            <div className="w-20 h-0.5 bg-secondary mt-2" />
+            <p className="text-sm text-white/70 font-sans pt-2">
+              Peer Evaluation Survey · Rate each group across five key dimensions (1–5)
+            </p>
+          </div>
+          <img src={rocketLogo} alt="Rocket logo" className="h-32 md:h-44 object-contain z-10" />
+        </div>
+      </div>
+
+      <div className="py-12 px-4">
       <div className="max-w-3xl mx-auto space-y-8">
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center space-y-2">
-          <h1 className="text-4xl text-primary">Peer Evaluation Survey</h1>
-          <p className="text-muted-foreground font-sans">Rate each group across five key dimensions (1–5)</p>
-        </motion.div>
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="space-y-2">
           <label className="font-sans text-sm font-semibold text-foreground">Your Group</label>
@@ -93,6 +113,7 @@ const SurveyForm = () => {
             <Button variant="outline" onClick={() => navigate("/results")}>View Results</Button>
           </div>
         )}
+      </div>
       </div>
     </div>
   );
