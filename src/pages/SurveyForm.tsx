@@ -6,6 +6,7 @@ import GroupRatingCard from "@/components/GroupRatingCard";
 import { GROUPS, DIMENSIONS, type GroupName, type DimensionKey, type GroupRanking, saveSubmission } from "@/lib/survey-data";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import rocketLogo from "@/assets/rocket-logo.png";
 
 const SurveyForm = () => {
   const navigate = useNavigate();
