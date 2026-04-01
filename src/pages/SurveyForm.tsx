@@ -114,6 +114,7 @@ const SurveyForm = () => {
           </div>
         )}
       </div>
+      </div>
     </div>
   );
 };
